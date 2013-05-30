@@ -1,7 +1,10 @@
+﻿# coding: utf-8
+
 '''
 Created on 10 may 2012
 
-@author: user1
+@author: Marc-Antoine Gouillart
+@license: Apache v2
 '''
 
 from main import WinRSConnection
@@ -42,23 +45,40 @@ class WindowsRemoteShell(cmd.Cmd):
 
 
     def do_connect(self, line):
-        print "Connecting... (Ctrl-C to cancel)"    
-        self._connected = True
-        self.c = self.con.WinRSCreate()
-        print "New WinRS session id is: " + self.c
+        l = line.split()
+        if len(l) < 3:
+            print u'invalid arguments'
+            return
+        user = l[0]
+        password = l[1]
+        host = l[2]
+        port=5985
+        if len(l) == 4:
+            port=l[3]
 
+        print "Connecting with user [%s] to server [%s] (Ctrl-C to cancel)" %(user, host)
+        self.c = self.con.WinRSCreate(user, password, host, port)
+        self._connected = True
+        print u"New WinRS session id is: " + self.c
+
+    def help_connect(self):
+        print u'Opens an HTTP (not HTTPS) connection. Server must be configured to allow simple HTTP auth.\n\n\tconnect username password hostname [HTTP port]'
+        print u'\n\tEXEMPLE\n\n\t\tconnect administrateur Pata1952 192.168.0.2 5985'
 
     def do_disconnect(self, line):
         if (self._connected):
             self.con.WinRSDelete(self.c)
         self._connected = False
 
+    def help_disconnect(self):
+        print u'Disconnects from the server (ends the session). Also called by "quit"'
 
     def do_quit(self, line):
-        if (self._connected):
-            self.con.WinRSDelete(self.c)
+        self.do_disconnect(line)
         sys.exit()
 
+    def help_quit(self):
+        print u'disconnects if ncesseray from the server and quits the program'
         
     def do_interactive(self, line):
         t = Thread(target = self.test)
@@ -73,12 +93,14 @@ class WindowsRemoteShell(cmd.Cmd):
             r = raw_input("XXXX")
             self.default(r)
 
+    def help_interactive(self):
+        print u'VERY EXPERIMENTAL. Not finished in any way - many formatting issues\n\nInteractive cmd.exe shell.'
         
     def onecmd(self, line):
         try:
             return cmd.Cmd.onecmd(self, line)
         except Exception, e:
-            print "An error has occurred : %s" %e 
+            print u"An error has occurred: %s" %e
             #traceback.print_last()
             
     
@@ -91,5 +113,10 @@ class WindowsRemoteShell(cmd.Cmd):
         #print (i+1)
         self.test(i+1)
     
+    def help_running_commands(self):
+        print u'Once you are connected (see the "connect" command), simply type the commands in the prompt. They will be executed without an active shell, so most often you will want to have cmd.exe or powershell.exe in your command.'
+        print u'\n\tC:\\Windows\\System32\\cmd.exe /C dir'
+        print u'\tC:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command ls'
+
 shell = WindowsRemoteShell();
-shell.cmdloop("Python Windows Remote Shell 0.0.1")
+shell.cmdloop(u"Python Windows Remote Shell 0.0.1")

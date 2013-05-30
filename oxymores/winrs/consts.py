@@ -1,7 +1,10 @@
+﻿# coding: utf-8
+
 '''
 Created on 3 may 2012
 
-@author: user1
+@author: Marc-Antoine Gouillart
+@license: Apache v2
 '''
 
 _WINRS_URI="http://schemas.microsoft.com/wbem/wsman/1/windows/shell"

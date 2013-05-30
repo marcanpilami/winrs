@@ -1,0 +1,56 @@
+﻿WinRS for Python
+#####################
+
+Introduction
+================
+
+This is a simple command line utility to remotely connect to a Windows server (or any server with a WSMan server)
+from any other os (Linux, Windows, ...) through the WSMan web service API (the API on which Remote Powershell is built).
+
+It allows to run arbitratry *non-interactive* commands on the remote system.
+
+In its current incarnation, it has fairly big security limitations:
+
+* Only supports HTTP connection, not HTTPS (often not an issue in LAN environments)
+* Only supports BASIC HTTP authentication. It will therefore be compulsory to relax a security option on the remote server.
+  (the association of the two points creates a security risk, where the password is sent unencrypted over the network)
+  
+Further evolutions will see the implementation of HTTPS, which will moot the security risk.
+A second, more long term evolution will be the use of certificates for authentication instead of basic HTTP login/password.
+
+
+Remote server configuration
+===============================
+
+In an elevated (admin) PowerShell session :
+
+# Check if remoting is activated (service must be started)
+Get-Service WinRM
+
+# If not running, enable remoting
+Enable-PSRemoting
+
+# To check the ports used for remote admin (default is 5985)
+ls -recurse wsman:\localhost\Listener\*
+
+# Allow Basic auth without encryption (security risk!)
+set-item  WSMan:\localhost\Service\AllowUnencrypted $true
+set-item  WSMan:\localhost\Service\Auth\Basic $true
+
+Run the command line
+========================
+
+shell> python shell.py
+winrs> connect login password hostname_or_ip [port]
+winrs> C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command ls
+[results go here]
+winrs> exit
+
+Full help :
+winrs> help
+
+Please note in the above exemple that we have given the full powershell path. Indeed, the remoting system used 
+is actually only made for launching processes - it is not a shell environment. So often, commands will include a shell
+(cmd.exe or powershell).
+
+Finaly, use of interactive commands will not really work.
